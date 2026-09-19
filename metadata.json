@@ -1,0 +1,6 @@
+{
+  "name": "StreamVerse",
+  "description": "Netflix-style streaming discovery platform aggregating movie and TV series catalogs across major OTT providers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
