@@ -360,6 +360,21 @@ fun StreamPlayerView(
                                 super.onPageFinished(view, url)
                                 isBuffering = false
                             }
+                            override fun onRenderProcessGone(view: android.webkit.WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+                                try {
+                                    view?.let {
+                                        val parent = it.parent as? android.view.ViewGroup
+                                        parent?.removeView(it)
+                                        it.destroy()
+                                    }
+                                } catch (_: Exception) {}
+                                playbackErrorMessage = "Embed renderer refreshed. Switching to next source..."
+                                val fallback = allSources.firstOrNull { it.streamUrl != currentStreamUrl && it.streamUrl.isNotBlank() }
+                                if (fallback != null) {
+                                    currentStreamUrl = fallback.streamUrl
+                                }
+                                return true
+                            }
                             override fun shouldOverrideUrlLoading(view: android.webkit.WebView?, request: android.webkit.WebResourceRequest?): Boolean {
                                 val url = request?.url?.toString().orEmpty()
                                 if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -396,10 +411,16 @@ fun StreamPlayerView(
                         settings.domStorageEnabled = true
                         settings.mediaPlaybackRequiresUserGesture = false
                         settings.allowFileAccess = true
-                        settings.databaseEnabled = true
                         
                         webChromeClient = android.webkit.WebChromeClient()
-                        webViewClient = android.webkit.WebViewClient()
+                        webViewClient = object : android.webkit.WebViewClient() {
+                            override fun onRenderProcessGone(view: android.webkit.WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+                                try {
+                                    view?.destroy()
+                                } catch (_: Exception) {}
+                                return true
+                            }
+                        }
                         
                         val htmlContent = """
                             <!DOCTYPE html>
